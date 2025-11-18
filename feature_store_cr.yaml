@@ -1,0 +1,48 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: feast-data-stores
+  namespace: feast
+stringData:
+  postgres: |
+    host: postgres.feast.svc.cluster.local
+    port: 5432
+    database: feast
+    db_schema: public
+    user: feast
+    password: feast
+---
+apiVersion: feast.dev/v1alpha1
+kind: FeatureStore
+metadata:
+  name: contracts-summarizer
+  namespace: feast
+spec:
+  authz:
+    kubernetes:
+      roles: []
+  feastProject: contracts_summarizer
+  feastProjectDir:
+    git:
+      url: https://github.com/jyejare/doc_rag
+      ref: doc_rag
+      featureRepoPath: feature_repo/
+  services:
+    offlineStore:
+      server:
+        logLevel: debug
+    onlineStore:
+      persistence:
+        store:
+          type: postgres
+          secretRef:
+            name: feast-data-stores
+      server:
+        logLevel: debug
+    registry:
+      local:
+        server:
+          logLevel: debug
+          restAPI: true
+    ui: {}
